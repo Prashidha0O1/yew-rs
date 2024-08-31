@@ -1,6 +1,9 @@
 ## FILE UPLOAD WebApp Using RUST 
 A demo application of how you can store images and videos on the cloud.
 Whether you are a fan of Rust or are a developer interested in new frameworks, Yew is a strong option that allows for fast, reliable, and maintainable web applications.
+Here's how the site looks:
+![image](https://github.com/user-attachments/assets/51f44b01-f50b-452c-9d47-6f73ac4289ea)
+
 <br>
 ## What is Yew?
 Yew is an incredibly versatile tool that allows web developers to craft their front-end projects on the web using Rust and WASM. Compiling Rust into WASM enables the design of excellent-speed web apps resembling desktop applications involving episode processing rates.
