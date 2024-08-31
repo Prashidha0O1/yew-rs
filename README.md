@@ -1,5 +1,5 @@
 ## FILE UPLOAD WebApp Using RUST 
-A demo application if how you can store images and videos on the cloud.
+A demo application of how you can store images and videos on the cloud.
 Whether you are a fan of Rust or are a developer interested in new frameworks, Yew is a strong option that allows for fast, reliable, and maintainable web applications.
 <br>
 ## What is Yew?
@@ -39,6 +39,6 @@ cargo build
 ```
 - run this project
 ```
-trunk serve --open
+trunk serve 
 ```
 
