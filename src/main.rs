@@ -1,50 +1,43 @@
-extern crate base64;
 use std::collections::HashMap;
 use base64::engine::general_purpose::STANDARD;
 use base64::Engine;
 use gloo::file::callbacks::FileReader;
 use gloo::file::File;
-use web_sys::{DragEvent, Event, FileList, HtmlInputElement};
+use web_sys::{js_sys, DragEvent, Event, FileList, HtmlInputElement};
 use yew::html::TargetCast;
 use yew::{html, Callback, Component, Context, Html};
 
-
-#[derive(Debug)]
 struct FileInfo {
     name: String,
     filetype: String,
-    data: Vec<u16>,
-
+    data: Vec<u8>,
 }
 
-enum Mesg{
-    Loaded(String, String, Vec<u16>),
+pub enum Mesg {
+    Loaded(String, String, Vec<u8>),
     Files(Vec<File>),
 }
 
-
-#[derive(Debug)]
-struct App{
- reade: HashMap<String, FileReader>,
- files: Vec<FileInfo>,
+pub struct App {
+    reade: HashMap<String, FileReader>,
+    files: Vec<FileInfo>,
 }
 
-
-impl Component for App{
+impl Component for App {
     type Message = Mesg;
-    type Property = ();
+    type Properties = ();
 
-    fn create(_ctx: &Context<Self>) -> Self{
-        Self{
-            reade: HashMap::default();
-            files: Vec::default();
+    fn create(_ctx: &Context<Self>) -> Self {
+        Self {
+            reade: HashMap::default(),
+            files: Vec::default(),
         }
     }
 
     fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
-        match msg{
+        match msg {
             Mesg::Loaded(file_name, filetype, data) => {
-                self.files.push(FileInfo{
+                self.files.push(FileInfo {
                     data,
                     filetype,
                     name: file_name.clone(),
@@ -52,40 +45,40 @@ impl Component for App{
                 self.reade.remove(&file_name);
                 true
             }
-            Mesg::Files(files) =>{
-                for file in files.into_iter(){
+            Mesg::Files(files) => {
+                for file in files.into_iter() {
                     let file_name = file.name();
-                    let filetype = file.raw.mime_type();
+                    let filetype = file.raw_mime_type();  // Corrected: Direct method for MIME type
 
-                    let tak ={
+                    let tak = {
                         let link = ctx.link().clone();
                         let file_name = file_name.clone();
 
-                        gloo::file::callbacks::read_as_bytes(&file, move |res|{
-                            link.send_message(Mesg:Loaded(
-                            file_name,
-                            filetype,
-                            res.expect("Failed to read file"),
-                        ))
-                    })
-                };
-                self.reade.insert(file_name, task);
+                        gloo::file::callbacks::read_as_bytes(&file, move |res| {
+                            link.send_message(Mesg::Loaded(
+                                file_name,
+                                filetype,
+                                res.expect("Failed to read file"),
+                            ))
+                        })
+                    };
+                    self.reade.insert(file_name, tak);
+                }
+                true
             }
-            true
         }
     }
-}
 
-fn view(&self, ctx: &Context<Self>) -> Html{
-    html!{
-        <div id="wrapper">
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        html! {
+            <div id="wrapper">
                 <p id="title">{ "Upload Your Files To The Cloud" }</p>
                 <label for="file-upload">
                     <div
                         id="drop-container"
                         ondrop={ctx.link().callback(|event: DragEvent| {
                             event.prevent_default();
-                            let files = event.data_transfer().unwrap().files();
+                            let files = event.data_transfer().unwrap().files();  // Corrected: DragEvent::data_transfer
                             Self::upload_files(files)
                         })}
                         ondragover={Callback::from(|event: DragEvent| {
@@ -117,27 +110,28 @@ fn view(&self, ctx: &Context<Self>) -> Html{
     }
 }
 
-impl App{
-    fn view_file(file: &FileInfo) -> Html{
-        html!{
-          <div class="preview-tile">
+impl App {
+    fn view_file(file: &FileInfo) -> Html {
+        html! {
+            <div class="preview-tile">
                 <p class="preview-name">{ format!("{}", file.name) }</p>
                 <div class="preview-media">
-                    if file.file_type.contains("image") {
-                        <img src={format!("data:{};base64,{}", file.file_type, STANDARD.encode(&file.data))} />
-                    } else if file.file_type.contains("video") {
+                    if file.filetype.contains("image") {
+                        <img src={format!("data:{};base64,{}", file.filetype, STANDARD.encode(&file.data))} />
+                    } else if file.filetype.contains("video") {
                         <video controls={true}>
-                            <source src={format!("data:{};base64,{}", file.file_type, STANDARD.encode(&file.data))} type={file.file_type.clone()}/>
+                            <source src={format!("data:{};base64,{}", file.filetype, STANDARD.encode(&file.data))} type={file.filetype.clone()} />
                         </video>
                     }
                 </div>
-            </div>  
+            </div>
         }
     }
-    fn upload_files(files: Option<FileList>) -> Mesg{
+
+    fn upload_files(files: Option<FileList>) -> Mesg {
         let mut res = Vec::new();
-        if let Some(files) = files{
-            let files = js_sys:try_iter(&files)
+        if let Some(files) = files {
+            let files = js_sys::try_iter(&files)
                 .unwrap()
                 .unwrap()
                 .map(|v| web_sys::File::from(v.unwrap()))
@@ -147,6 +141,7 @@ impl App{
         Mesg::Files(res)
     }
 }
+
 fn main() {
     yew::Renderer::<App>::new().render();
-} 
+}
