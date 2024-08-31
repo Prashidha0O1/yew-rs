@@ -39,6 +39,6 @@ cargo build
 ```
 - run this project
 ```
-trunk serve 
+trunk serve --open
 ```
 
